@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Wrench, Bell, School, ArrowRight } from 'lucide-react';
 
 const LandingPage = () => {
     const navigate = useNavigate();
@@ -13,7 +14,7 @@ const LandingPage = () => {
             {/* Navigation */}
             <nav style={styles.nav}>
                 <div style={styles.logo}>
-                    <span style={styles.logoIcon}>🏫</span>
+                    <School size={28} color="#a78bfa" />
                     <span style={styles.logoText}>Smart Campus</span>
                 </div>
                 <button onClick={handleSignClick} style={styles.signInBtn}>Sign In</button>
@@ -30,19 +31,21 @@ const LandingPage = () => {
                     Book resources, report incidents, and manage campus operations — all in one unified platform.
                 </p>
                 <div style={styles.ctaGroup}>
-                    <button onClick={handleSignClick} style={styles.getStartedBtn}>Get Started</button>
+                    <button onClick={handleSignClick} style={styles.getStartedBtn}>
+                        Get Started <ArrowRight size={18} style={{ marginLeft: '8px' }} />
+                    </button>
                     <button style={styles.outlineBtn}>Browse Resources</button>
                 </div>
 
                 {/* Features / Cards */}
                 <div style={styles.features}>
                     <div style={styles.featureCard}>
-                        <span style={styles.featureIcon}>🔧</span>
+                        <Wrench size={32} color="#a78bfa" style={{ marginBottom: '16px' }} />
                         <h3 style={styles.featureTitle}>Maintenance Tickets</h3>
                         <p style={styles.featureDesc}>Report and track facility issues in real-time.</p>
                     </div>
                     <div style={styles.featureCard}>
-                        <span style={styles.featureIcon}>🔔</span>
+                        <Bell size={32} color="#a78bfa" style={{ marginBottom: '16px' }} />
                         <h3 style={styles.featureTitle}>Smart Notifications</h3>
                         <p style={styles.featureDesc}>Stay updated with campus-wide alerts.</p>
                     </div>
@@ -59,7 +62,7 @@ const LandingPage = () => {
 const styles = {
     container: {
         minHeight: '100vh',
-        background: '#0a0a0c',
+        background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)',
         color: '#fff',
         fontFamily: "'Inter', 'Segoe UI', sans-serif",
         display: 'flex',
@@ -70,28 +73,29 @@ const styles = {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        background: 'rgba(10,10,12,0.8)',
+        background: 'rgba(255, 255, 255, 0.03)',
         backdropFilter: 'blur(10px)',
         position: 'sticky',
         top: 0,
         zIndex: 100,
+        borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
     },
     logo: {
         display: 'flex',
         alignItems: 'center',
         gap: '10px',
     },
-    logoIcon: { fontSize: '24px' },
     logoText: { fontSize: '20px', fontWeight: 700, letterSpacing: '-0.5px' },
     signInBtn: {
-        padding: '8px 20px',
-        borderRadius: '8px',
+        padding: '8px 22px',
+        borderRadius: '10px',
         border: 'none',
-        background: '#1a73e8',
+        background: 'linear-gradient(135deg, #667eea, #764ba2)',
         color: '#fff',
         fontSize: '14px',
         fontWeight: 600,
         cursor: 'pointer',
+        boxShadow: '0 4px 15px rgba(118, 75, 162, 0.3)',
         transition: 'all 0.3s ease',
     },
     hero: {
@@ -106,81 +110,89 @@ const styles = {
         margin: '0 auto',
     },
     badge: {
-        background: 'rgba(26,115,232,0.1)',
-        color: '#1a73e8',
-        padding: '6px 16px',
+        background: 'rgba(118, 75, 162, 0.15)',
+        color: '#a78bfa',
+        padding: '6px 18px',
         borderRadius: '20px',
         fontSize: '12px',
         fontWeight: 600,
         marginBottom: '24px',
-        border: '1px solid rgba(26,115,232,0.2)',
+        border: '1px solid rgba(118, 75, 162, 0.3)',
+        letterSpacing: '1px',
     },
     mainTitle: {
-        fontSize: '64px',
+        fontSize: '68px',
         fontWeight: 800,
         lineHeight: 1.1,
         marginBottom: '24px',
-        letterSpacing: '-1px',
+        letterSpacing: '-1.5px',
     },
     accentText: {
-        color: '#1a73e8',
+        background: 'linear-gradient(135deg, #a78bfa, #c4b5fd)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
     },
     description: {
-        fontSize: '18px',
-        color: 'rgba(255,255,255,0.6)',
-        maxWidth: '600px',
-        marginBottom: '40px',
+        fontSize: '19px',
+        color: 'rgba(255,255,255,0.65)',
+        maxWidth: '650px',
+        marginBottom: '48px',
         lineHeight: 1.6,
     },
     ctaGroup: {
         display: 'flex',
-        gap: '16px',
-        marginBottom: '80px',
+        gap: '20px',
+        marginBottom: '100px',
     },
     getStartedBtn: {
-        padding: '14px 32px',
+        padding: '16px 36px',
         borderRadius: '12px',
         border: 'none',
-        background: '#1a73e8',
+        background: 'linear-gradient(135deg, #667eea, #764ba2)',
         color: '#fff',
         fontSize: '16px',
         fontWeight: 600,
         cursor: 'pointer',
-        boxShadow: '0 8px 24px rgba(26,115,232,0.3)',
+        boxShadow: '0 10px 30px rgba(118, 75, 162, 0.4)',
+        display: 'flex',
+        alignItems: 'center',
+        transition: 'transform 0.3s ease',
     },
     outlineBtn: {
-        padding: '14px 32px',
+        padding: '16px 36px',
         borderRadius: '12px',
-        border: '1px solid rgba(255,255,255,0.2)',
-        background: 'transparent',
+        border: '1px solid rgba(255,255,255,0.15)',
+        background: 'rgba(255,255,255,0.03)',
         color: '#fff',
         fontSize: '16px',
         fontWeight: 600,
         cursor: 'pointer',
+        backdropFilter: 'blur(5px)',
     },
     features: {
         display: 'flex',
-        gap: '24px',
+        gap: '30px',
         width: '100%',
         justifyContent: 'center',
     },
     featureCard: {
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        borderRadius: '20px',
-        padding: '30px',
-        width: '280px',
+        background: 'rgba(255,255,255,0.05)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: '24px',
+        padding: '35px',
+        width: '300px',
         textAlign: 'left',
-        transition: 'transform 0.3s ease',
+        transition: 'all 0.3s ease',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
     },
-    featureIcon: { fontSize: '24px', display: 'block', marginBottom: '16px' },
-    featureTitle: { fontSize: '18px', fontWeight: 600, marginBottom: '10px' },
-    featureDesc: { fontSize: '14px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 },
+    featureTitle: { fontSize: '20px', fontWeight: 600, marginBottom: '12px', color: '#fff' },
+    featureDesc: { fontSize: '15px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 },
     footer: {
         padding: '40px',
         textAlign: 'center',
         fontSize: '12px',
-        color: 'rgba(255,255,255,0.3)',
+        color: 'rgba(255,255,255,0.25)',
         borderTop: '1px solid rgba(255,255,255,0.05)',
     },
 };
