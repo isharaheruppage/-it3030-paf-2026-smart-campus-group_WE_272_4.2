@@ -36,7 +36,22 @@ function BookingList() {
   };
 
   useEffect(() => {
-    loadBookings();
+    const fetchBookings = async () => {
+      setLoading(true);
+      try {
+        const data =
+          currentUser.role === "ADMIN"
+            ? await getAllBookings()
+            : await getBookingsByRequester(currentUser.id);
+        setBookings(data);
+      } catch (error) {
+        toast.error(error?.response?.data?.message || "Unable to load bookings");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBookings();
   }, [currentUser.id, currentUser.role]);
 
   const handleCancel = async (bookingId) => {

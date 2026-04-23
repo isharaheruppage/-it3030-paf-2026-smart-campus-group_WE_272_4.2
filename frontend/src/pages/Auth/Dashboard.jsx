@@ -11,14 +11,14 @@ function Dashboard() {
       ? [
           {
             title: "Review Booking Queue",
-            description: "Filter booking requests by date or status and approve or reject them fast.",
+            description: "Review pending requests, keep approved bookings visible, and manage decisions fast.",
             to: "/admin/bookings",
             accent: "from-teal-500 to-cyan-500"
           },
           {
-            title: "Monitor User Requests",
-            description: "Inspect all booking records with workflow status and audit details.",
-            to: "/bookings/mine",
+            title: "Booking Analytics",
+            description: "Open the admin booking console to track totals, approvals, and top requested resources.",
+            to: "/admin/bookings",
             accent: "from-slate-900 to-slate-700"
           }
         ]

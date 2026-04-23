@@ -26,6 +26,13 @@ export async function getBookingById(bookingId) {
   return response.data;
 }
 
+export async function getBookingAnalytics(adminId) {
+  const response = await bookingClient.get("/bookings/admin/analytics", {
+    params: { adminId }
+  });
+  return response.data;
+}
+
 export async function reviewBooking(bookingId, payload) {
   const response = await bookingClient.patch(`/bookings/${bookingId}/review`, payload);
   return response.data;

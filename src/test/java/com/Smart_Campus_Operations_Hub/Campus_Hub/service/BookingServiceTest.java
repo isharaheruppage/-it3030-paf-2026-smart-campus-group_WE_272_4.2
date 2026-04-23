@@ -1,6 +1,7 @@
 package com.Smart_Campus_Operations_Hub.Campus_Hub.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDate;
@@ -12,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import com.Smart_Campus_Operations_Hub.Campus_Hub.dto.request.BookingRequestDTO;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.dto.request.BookingReviewRequestDTO;
+import com.Smart_Campus_Operations_Hub.Campus_Hub.dto.response.BookingAnalyticsDTO;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.dto.response.BookingResponseDTO;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.exception.ConflictException;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.model.Booking.BookingStatus;
@@ -73,5 +75,34 @@ class BookingServiceTest {
                 .build();
 
         assertThrows(ConflictException.class, () -> bookingService.createBooking(conflictingRequest));
+    }
+
+    @Test
+    void shouldReturnAdminBookingAnalytics() {
+        BookingResponseDTO createdBooking = bookingService.createBooking(BookingRequestDTO.builder()
+                .resourceId(2L)
+                .requesterId(2L)
+                .bookingDate(LocalDate.now().plusDays(3))
+                .startTime(LocalTime.of(9, 0))
+                .endTime(LocalTime.of(10, 0))
+                .purpose("Admin analytics sample")
+                .expectedAttendees(8)
+                .build());
+
+        bookingService.reviewBooking(
+                createdBooking.getId(),
+                BookingReviewRequestDTO.builder()
+                        .adminId(1L)
+                        .status(BookingStatus.APPROVED)
+                        .reason("Approved for analytics")
+                        .build());
+
+        BookingAnalyticsDTO analytics = bookingService.getAdminBookingAnalytics(1L);
+
+        assertTrue(analytics.getTotalBookings() >= 1);
+        assertTrue(analytics.getApprovedBookings() >= 1);
+        assertTrue(analytics.getUpcomingApprovedBookings() >= 1);
+        assertTrue(analytics.getTopResources().stream()
+                .anyMatch(resource -> resource.getResourceId().equals(2L)));
     }
 }

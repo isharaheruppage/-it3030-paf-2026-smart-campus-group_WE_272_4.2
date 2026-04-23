@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.Smart_Campus_Operations_Hub.Campus_Hub.dto.request.BookingRequestDTO;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.dto.request.BookingReviewRequestDTO;
+import com.Smart_Campus_Operations_Hub.Campus_Hub.dto.response.BookingAnalyticsDTO;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.dto.response.BookingResponseDTO;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.model.Booking.BookingStatus;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.service.BookingService;
@@ -48,14 +49,19 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.getAllBookings(status, resourceId, requesterId, bookingDate));
     }
 
-    @GetMapping("/{bookingId}")
-    public ResponseEntity<BookingResponseDTO> getBookingById(@PathVariable Long bookingId) {
-        return ResponseEntity.ok(bookingService.getBookingById(bookingId));
+    @GetMapping("/admin/analytics")
+    public ResponseEntity<BookingAnalyticsDTO> getAdminBookingAnalytics(@RequestParam Long adminId) {
+        return ResponseEntity.ok(bookingService.getAdminBookingAnalytics(adminId));
     }
 
     @GetMapping("/users/{requesterId}")
     public ResponseEntity<List<BookingResponseDTO>> getBookingsByRequester(@PathVariable Long requesterId) {
         return ResponseEntity.ok(bookingService.getBookingsByRequester(requesterId));
+    }
+
+    @GetMapping("/{bookingId}")
+    public ResponseEntity<BookingResponseDTO> getBookingById(@PathVariable Long bookingId) {
+        return ResponseEntity.ok(bookingService.getBookingById(bookingId));
     }
 
     @PatchMapping("/{bookingId}/review")

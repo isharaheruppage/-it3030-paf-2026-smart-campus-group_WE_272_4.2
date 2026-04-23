@@ -1,15 +1,20 @@
 package com.Smart_Campus_Operations_Hub.Campus_Hub.service;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.Smart_Campus_Operations_Hub.Campus_Hub.dto.request.BookingRequestDTO;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.dto.request.BookingReviewRequestDTO;
+import com.Smart_Campus_Operations_Hub.Campus_Hub.dto.response.BookingAnalyticsDTO;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.dto.response.BookingResponseDTO;
+import com.Smart_Campus_Operations_Hub.Campus_Hub.dto.response.ResourceBookingStatDTO;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.exception.BadRequestException;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.exception.ConflictException;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.exception.ResourceNotFoundException;
@@ -87,6 +92,58 @@ public class BookingService {
                 .stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public BookingAnalyticsDTO getAdminBookingAnalytics(Long adminId) {
+        User admin = getUserOrThrow(adminId);
+        validateAdminRole(admin);
+
+        List<Booking> bookings = bookingRepository.findAll();
+        LocalDate today = LocalDate.now();
+
+        long totalBookings = bookings.size();
+        long pendingBookings = countByStatus(bookings, BookingStatus.PENDING);
+        long approvedBookings = countByStatus(bookings, BookingStatus.APPROVED);
+        long rejectedBookings = countByStatus(bookings, BookingStatus.REJECTED);
+        long cancelledBookings = countByStatus(bookings, BookingStatus.CANCELLED);
+        long todaysBookings = bookings.stream()
+                .filter(booking -> today.equals(booking.getBookingDate()))
+                .count();
+        long upcomingApprovedBookings = bookings.stream()
+                .filter(booking -> booking.getStatus() == BookingStatus.APPROVED)
+                .filter(booking -> !booking.getBookingDate().isBefore(today))
+                .count();
+
+        double approvalRate = totalBookings == 0
+                ? 0.0
+                : (approvedBookings * 100.0) / totalBookings;
+        Map<Long, Long> approvedBookingsByResource = approvedBookingsByResource(bookings);
+
+        List<ResourceBookingStatDTO> topResources = bookings.stream()
+                .collect(Collectors.groupingBy(booking -> booking.getResource().getId()))
+                .entrySet()
+                .stream()
+                .map(entry -> mapToResourceStat(entry, approvedBookingsByResource.get(entry.getKey())))
+                .sorted(Comparator.comparingLong(ResourceBookingStatDTO::getTotalBookings)
+                        .reversed()
+                        .thenComparing(Comparator.comparingLong(ResourceBookingStatDTO::getApprovedBookings)
+                                .reversed())
+                        .thenComparing(ResourceBookingStatDTO::getResourceName))
+                .limit(5)
+                .toList();
+
+        return BookingAnalyticsDTO.builder()
+                .totalBookings(totalBookings)
+                .pendingBookings(pendingBookings)
+                .approvedBookings(approvedBookings)
+                .rejectedBookings(rejectedBookings)
+                .cancelledBookings(cancelledBookings)
+                .todaysBookings(todaysBookings)
+                .upcomingApprovedBookings(upcomingApprovedBookings)
+                .approvalRate(approvalRate)
+                .topResources(topResources)
+                .build();
     }
 
     public BookingResponseDTO reviewBooking(Long bookingId, BookingReviewRequestDTO request) {
@@ -217,6 +274,31 @@ public class BookingService {
     private User getUserOrThrow(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+    }
+
+    private long countByStatus(List<Booking> bookings, BookingStatus status) {
+        return bookings.stream()
+                .filter(booking -> booking.getStatus() == status)
+                .count();
+    }
+
+    private Map<Long, Long> approvedBookingsByResource(List<Booking> bookings) {
+        return bookings.stream()
+                .filter(booking -> booking.getStatus() == BookingStatus.APPROVED)
+                .collect(Collectors.groupingBy(
+                        booking -> booking.getResource().getId(),
+                        Collectors.counting()));
+    }
+
+    private ResourceBookingStatDTO mapToResourceStat(Map.Entry<Long, List<Booking>> entry, Long approvedBookings) {
+        Booking sampleBooking = entry.getValue().get(0);
+
+        return ResourceBookingStatDTO.builder()
+                .resourceId(sampleBooking.getResource().getId())
+                .resourceName(sampleBooking.getResource().getName())
+                .totalBookings(entry.getValue().size())
+                .approvedBookings(approvedBookings != null ? approvedBookings : 0L)
+                .build();
     }
 
     private BookingResponseDTO toResponse(Booking booking) {
