@@ -30,7 +30,14 @@ function App() {
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
-        <Route path="bookings/new" element={<BookingForm />} />
+        <Route
+          path="bookings/new"
+          element={
+            <PrivateRoute requiredRole="USER">
+              <BookingForm />
+            </PrivateRoute>
+          }
+        />
         <Route path="bookings/mine" element={<BookingList />} />
         <Route
           path="admin/bookings"

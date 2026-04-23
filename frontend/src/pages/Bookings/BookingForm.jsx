@@ -107,6 +107,11 @@ function BookingForm() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    if (currentUser?.role !== "USER") {
+      toast.error("Only the user account can create bookings.");
+      return;
+    }
+
     if (!selectedResource) {
       toast.error("Please select a resource.");
       return;
@@ -140,7 +145,9 @@ function BookingForm() {
       setFormData(initialForm);
     } catch (error) {
       const message =
-        error?.response?.data?.message || "Unable to create booking. Please try again.";
+        error?.response?.data?.message ||
+        error?.message ||
+        "Unable to create booking. Please try again.";
       toast.error(message);
     } finally {
       setSubmitting(false);

@@ -33,7 +33,7 @@ function Navbar() {
 
         <nav className="flex flex-wrap items-center gap-2 rounded-full bg-slate-100/80 p-2">
           <NavItem to="/dashboard">Dashboard</NavItem>
-          <NavItem to="/bookings/new">New Booking</NavItem>
+          {currentUser?.role === "USER" && <NavItem to="/bookings/new">New Booking</NavItem>}
           <NavItem to="/bookings/mine">My Bookings</NavItem>
           {currentUser?.role === "ADMIN" && <NavItem to="/admin/bookings">Admin Panel</NavItem>}
         </nav>
