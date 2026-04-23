@@ -6,7 +6,7 @@ const LandingPage = () => {
     const navigate = useNavigate();
 
     const handleSignClick = () => {
-        window.location.href = 'http://localhost:8081/oauth2/authorization/google';
+        navigate('/login');
     };
 
     return (
