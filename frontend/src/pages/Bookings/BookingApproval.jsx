@@ -196,6 +196,63 @@ function buildCsv(bookings) {
     .join("\n");
 }
 
+function deriveAnalyticsFromBookings(bookings) {
+  const today = new Date().toISOString().slice(0, 10);
+  const totalBookings = bookings.length;
+  const pendingBookings = bookings.filter((booking) => booking.status === "PENDING").length;
+  const approvedBookings = bookings.filter((booking) => booking.status === "APPROVED").length;
+  const rejectedBookings = bookings.filter((booking) => booking.status === "REJECTED").length;
+  const cancelledBookings = bookings.filter((booking) => booking.status === "CANCELLED").length;
+  const todaysBookings = bookings.filter((booking) => booking.bookingDate === today).length;
+  const upcomingApprovedBookings = bookings.filter(
+    (booking) => booking.status === "APPROVED" && booking.bookingDate >= today
+  ).length;
+  const approvalRate = totalBookings === 0 ? 0 : (approvedBookings * 100) / totalBookings;
+
+  const resourceMap = bookings.reduce((accumulator, booking) => {
+    const current = accumulator.get(booking.resourceId) || {
+      resourceId: booking.resourceId,
+      resourceName: booking.resourceName,
+      totalBookings: 0,
+      approvedBookings: 0
+    };
+
+    current.totalBookings += 1;
+    if (booking.status === "APPROVED") {
+      current.approvedBookings += 1;
+    }
+
+    accumulator.set(booking.resourceId, current);
+    return accumulator;
+  }, new Map());
+
+  const topResources = [...resourceMap.values()]
+    .sort((left, right) => {
+      if (right.totalBookings !== left.totalBookings) {
+        return right.totalBookings - left.totalBookings;
+      }
+
+      if (right.approvedBookings !== left.approvedBookings) {
+        return right.approvedBookings - left.approvedBookings;
+      }
+
+      return left.resourceName.localeCompare(right.resourceName);
+    })
+    .slice(0, 5);
+
+  return {
+    totalBookings,
+    pendingBookings,
+    approvedBookings,
+    rejectedBookings,
+    cancelledBookings,
+    todaysBookings,
+    upcomingApprovedBookings,
+    approvalRate,
+    topResources
+  };
+}
+
 function BookingApproval() {
   const { currentUser } = useAuth();
   const [filters, setFilters] = useState({
@@ -230,7 +287,7 @@ function BookingApproval() {
       if (analyticsResult.status === "fulfilled") {
         setAnalytics(analyticsResult.value);
       } else {
-        setAnalytics(null);
+        setAnalytics(deriveAnalyticsFromBookings(bookingResult.value));
       }
     } catch (error) {
       toast.error(error?.response?.data?.message || "Unable to load booking queue");
@@ -264,8 +321,7 @@ function BookingApproval() {
         if (analyticsResult.status === "fulfilled") {
           setAnalytics(analyticsResult.value);
         } else {
-          setAnalytics(null);
-          toast.error("Bookings loaded, but analytics is currently unavailable");
+          setAnalytics(deriveAnalyticsFromBookings(bookingResult.value));
         }
 
         setFilters(initialFilters);
