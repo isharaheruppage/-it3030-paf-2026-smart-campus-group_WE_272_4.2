@@ -22,7 +22,6 @@ const LandingPage = () => {
 
             {/* Hero Section */}
             <main style={styles.hero}>
-                <div style={styles.badge}>GROUP 423 • IT3030 PAF 2026</div>
                 <h1 style={styles.mainTitle}>
                     Intelligent <span style={styles.accentText}>Campus</span><br />
                     Management <span style={styles.accentText}>Platform</span>
