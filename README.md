@@ -36,6 +36,38 @@ Example:
 - `availableTo` (required for create, must be later than `availableFrom`)
 - `status` (required enum)
 
+### API examples
+Create resource (`POST /api/resources`) with `admin/admin123`:
+
+```json
+{
+  "name": "Lab A1",
+  "type": "LAB",
+  "capacity": 40,
+  "location": "Engineering Block",
+  "availableFrom": "08:00:00",
+  "availableTo": "17:00:00",
+  "status": "ACTIVE"
+}
+```
+
+Sample success response (`201 Created`):
+
+```json
+{
+  "id": 1,
+  "name": "Lab A1",
+  "type": "LAB",
+  "capacity": 40,
+  "location": "Engineering Block",
+  "availableFrom": "08:00:00",
+  "availableTo": "17:00:00",
+  "status": "ACTIVE",
+  "createdAt": "2026-04-24T08:00:00Z",
+  "updatedAt": "2026-04-24T08:00:00Z"
+}
+```
+
 ### Technical notes
 - H2 database configured (`jdbc:h2:mem:campus_hub`)
 - H2 console enabled at `/h2-console`
@@ -48,6 +80,9 @@ Minimal React client is under `frontend/` and includes:
 - list + filtering of resources
 - admin create resource form
 - admin patch location + deactivate actions
+
+### Postman collection
+- Import `docs/postman/member-01-resource-management.postman_collection.json` for viva/demo requests.
 
 Run frontend:
 1. `cd frontend`
