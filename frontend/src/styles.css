@@ -49,11 +49,13 @@ label {
   font-weight: 600;
 }
 
-input {
+input,
+select {
   border: 1px solid #9ca3af;
   border-radius: 6px;
   padding: 8px 10px;
   font-size: 14px;
+  background: #fff;
 }
 
 button {

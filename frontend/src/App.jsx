@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
 import { createResource, deactivateResource, fetchResources, patchResource } from "./api";
 
+const RESOURCE_TYPES = ["LECTURE_HALL", "LAB", "MEETING_ROOM", "EQUIPMENT"];
+const RESOURCE_STATUSES = ["ACTIVE", "OUT_OF_SERVICE", "INACTIVE"];
+
 const EMPTY_FILTERS = {
   type: "",
   minCapacity: "",
@@ -19,6 +22,15 @@ const EMPTY_RESOURCE_FORM = {
   availableTo: "17:00:00",
   status: "ACTIVE"
 };
+
+function toTimeInputValue(value) {
+  return value ? value.slice(0, 5) : "";
+}
+
+function toApiTimeValue(value) {
+  if (!value) return "";
+  return value.length === 5 ? `${value}:00` : value;
+}
 
 export default function App() {
   const [credentials, setCredentials] = useState({ username: "user", password: "user123" });
@@ -50,7 +62,9 @@ export default function App() {
     try {
       await createResource(credentials, {
         ...resourceForm,
-        capacity: Number(resourceForm.capacity)
+        capacity: Number(resourceForm.capacity),
+        availableFrom: toApiTimeValue(resourceForm.availableFrom),
+        availableTo: toApiTimeValue(resourceForm.availableTo)
       });
       setMessage("Resource created");
       await loadResources();
@@ -116,15 +130,70 @@ export default function App() {
       <section className="card">
         <h2>Catalogue Filters</h2>
         <div className="grid">
-          {Object.keys(EMPTY_FILTERS).map((key) => (
-            <label key={key}>
-              {key}
-              <input
-                value={filters[key]}
-                onChange={(e) => setFilters((prev) => ({ ...prev, [key]: e.target.value }))}
-              />
-            </label>
-          ))}
+          <label>
+            Type
+            <select
+              value={filters.type}
+              onChange={(e) => setFilters((prev) => ({ ...prev, type: e.target.value }))}
+            >
+              <option value="">All</option>
+              {RESOURCE_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Minimum Capacity
+            <input
+              type="number"
+              min="0"
+              value={filters.minCapacity}
+              onChange={(e) => setFilters((prev) => ({ ...prev, minCapacity: e.target.value }))}
+            />
+          </label>
+          <label>
+            Location
+            <input
+              value={filters.location}
+              onChange={(e) => setFilters((prev) => ({ ...prev, location: e.target.value }))}
+            />
+          </label>
+          <label>
+            Status
+            <select
+              value={filters.status}
+              onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
+            >
+              <option value="">All</option>
+              {RESOURCE_STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Available From
+            <input
+              type="time"
+              value={toTimeInputValue(filters.availableFrom)}
+              onChange={(e) =>
+                setFilters((prev) => ({ ...prev, availableFrom: toApiTimeValue(e.target.value) }))
+              }
+            />
+          </label>
+          <label>
+            Available To
+            <input
+              type="time"
+              value={toTimeInputValue(filters.availableTo)}
+              onChange={(e) =>
+                setFilters((prev) => ({ ...prev, availableTo: toApiTimeValue(e.target.value) }))
+              }
+            />
+          </label>
         </div>
         <div className="row">
           <button onClick={loadResources}>Apply Filters</button>
@@ -136,15 +205,80 @@ export default function App() {
         <section className="card">
           <h2>Create Resource (Admin)</h2>
           <form className="grid" onSubmit={handleCreate}>
-            {Object.keys(EMPTY_RESOURCE_FORM).map((key) => (
-              <label key={key}>
-                {key}
-                <input
-                  value={resourceForm[key]}
-                  onChange={(e) => setResourceForm((prev) => ({ ...prev, [key]: e.target.value }))}
-                />
-              </label>
-            ))}
+            <label>
+              Name
+              <input
+                value={resourceForm.name}
+                onChange={(e) => setResourceForm((prev) => ({ ...prev, name: e.target.value }))}
+                required
+              />
+            </label>
+            <label>
+              Type
+              <select
+                value={resourceForm.type}
+                onChange={(e) => setResourceForm((prev) => ({ ...prev, type: e.target.value }))}
+              >
+                {RESOURCE_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Capacity
+              <input
+                type="number"
+                min="0"
+                value={resourceForm.capacity}
+                onChange={(e) => setResourceForm((prev) => ({ ...prev, capacity: e.target.value }))}
+                required
+              />
+            </label>
+            <label>
+              Location
+              <input
+                value={resourceForm.location}
+                onChange={(e) => setResourceForm((prev) => ({ ...prev, location: e.target.value }))}
+                required
+              />
+            </label>
+            <label>
+              Available From
+              <input
+                type="time"
+                value={toTimeInputValue(resourceForm.availableFrom)}
+                onChange={(e) =>
+                  setResourceForm((prev) => ({ ...prev, availableFrom: toApiTimeValue(e.target.value) }))
+                }
+                required
+              />
+            </label>
+            <label>
+              Available To
+              <input
+                type="time"
+                value={toTimeInputValue(resourceForm.availableTo)}
+                onChange={(e) =>
+                  setResourceForm((prev) => ({ ...prev, availableTo: toApiTimeValue(e.target.value) }))
+                }
+                required
+              />
+            </label>
+            <label>
+              Status
+              <select
+                value={resourceForm.status}
+                onChange={(e) => setResourceForm((prev) => ({ ...prev, status: e.target.value }))}
+              >
+                {RESOURCE_STATUSES.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </label>
             <button type="submit">Create</button>
           </form>
         </section>
