@@ -1,0 +1,240 @@
+{
+  "info": {
+    "name": "Member 01 - Resource Management",
+    "_postman_id": "a3224d8f-f680-47e0-a07e-d88ccfddb8de",
+    "description": "Postman collection for Module A endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Resource (ADMIN)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{adminUsername}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{adminPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Lab A1\",\n  \"type\": \"LAB\",\n  \"capacity\": 40,\n  \"location\": \"Engineering Block\",\n  \"availableFrom\": \"08:00:00\",\n  \"availableTo\": \"17:00:00\",\n  \"status\": \"ACTIVE\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/resources",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "resources"
+          ]
+        }
+      }
+    },
+    {
+      "name": "List Resources With Filters (USER)",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{userUsername}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{userPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/resources?type=LAB&minCapacity=20&location=engineering&status=ACTIVE&availableFrom=09:00:00&availableTo=16:00:00",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "resources"
+          ],
+          "query": [
+            {
+              "key": "type",
+              "value": "LAB"
+            },
+            {
+              "key": "minCapacity",
+              "value": "20"
+            },
+            {
+              "key": "location",
+              "value": "engineering"
+            },
+            {
+              "key": "status",
+              "value": "ACTIVE"
+            },
+            {
+              "key": "availableFrom",
+              "value": "09:00:00"
+            },
+            {
+              "key": "availableTo",
+              "value": "16:00:00"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Resource By ID (USER)",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{userUsername}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{userPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/resources/{{resourceId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "resources",
+            "{{resourceId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Patch Resource (ADMIN)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{adminUsername}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{adminPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"location\": \"Engineering Block - Floor 2\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/resources/{{resourceId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "resources",
+            "{{resourceId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Deactivate Resource (ADMIN)",
+      "request": {
+        "method": "DELETE",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{adminUsername}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{adminPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/resources/{{resourceId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "resources",
+            "{{resourceId}}"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "adminUsername",
+      "value": "admin"
+    },
+    {
+      "key": "adminPassword",
+      "value": "admin123"
+    },
+    {
+      "key": "userUsername",
+      "value": "user"
+    },
+    {
+      "key": "userPassword",
+      "value": "user123"
+    },
+    {
+      "key": "resourceId",
+      "value": "1"
+    }
+  ]
+}
