@@ -176,16 +176,23 @@ public class BookingService {
 
         booking.setStatus(request.getStatus());
         booking.setAdminReason(normalizeReason(request.getReason()));
+        booking.setCancellationReason(null);
         booking.setReviewedBy(admin);
 
         return toResponse(bookingRepository.save(booking));
     }
 
-    public BookingResponseDTO cancelBooking(Long bookingId, Long requesterId) {
+    public BookingResponseDTO cancelBooking(Long bookingId, Long requesterId, String reason) {
         Booking booking = getBookingOrThrow(bookingId);
 
         if (!booking.getRequester().getId().equals(requesterId)) {
             throw new BadRequestException("Only the requester can cancel this booking");
+        }
+
+        String normalizedReason = normalizeReason(reason);
+
+        if (normalizedReason == null) {
+            throw new BadRequestException("Reason is required when cancelling a booking");
         }
 
         if (booking.getStatus() == BookingStatus.CANCELLED) {
@@ -197,6 +204,8 @@ public class BookingService {
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
+        booking.setCancellationReason(normalizedReason);
+        booking.setAdminReason(null);
         return toResponse(bookingRepository.save(booking));
     }
 
@@ -320,6 +329,7 @@ public class BookingService {
                 .expectedAttendees(booking.getExpectedAttendees())
                 .status(booking.getStatus())
                 .adminReason(booking.getAdminReason())
+                .cancellationReason(booking.getCancellationReason())
                 .reviewedById(reviewer != null ? reviewer.getId() : null)
                 .reviewedByName(reviewer != null ? reviewer.getFullName() : null)
                 .createdAt(booking.getCreatedAt())

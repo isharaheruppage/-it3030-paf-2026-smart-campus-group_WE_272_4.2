@@ -38,9 +38,9 @@ export async function reviewBooking(bookingId, payload) {
   return response.data;
 }
 
-export async function cancelBooking(bookingId, requesterId) {
+export async function cancelBooking(bookingId, requesterId, reason) {
   const response = await bookingClient.patch(`/bookings/${bookingId}/cancel`, null, {
-    params: { requesterId }
+    params: { requesterId, reason }
   });
   return response.data;
 }

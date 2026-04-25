@@ -18,8 +18,9 @@ root.render(
           toastOptions={{
             style: {
               borderRadius: "16px",
-              background: "#0f172a",
-              color: "#fff"
+              background: "#2e1065",
+              color: "#fff",
+              border: "1px solid #ddd6fe"
             }
           }}
         />

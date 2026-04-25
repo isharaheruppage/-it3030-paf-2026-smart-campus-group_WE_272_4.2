@@ -74,8 +74,9 @@ public class BookingController {
     @PatchMapping("/{bookingId}/cancel")
     public ResponseEntity<BookingResponseDTO> cancelBooking(
             @PathVariable Long bookingId,
-            @RequestParam Long requesterId) {
-        return ResponseEntity.ok(bookingService.cancelBooking(bookingId, requesterId));
+            @RequestParam Long requesterId,
+            @RequestParam String reason) {
+        return ResponseEntity.ok(bookingService.cancelBooking(bookingId, requesterId, reason));
     }
 
     @DeleteMapping("/{bookingId}")

@@ -66,6 +66,9 @@ public class Booking {
     @Column(length = 255)
     private String adminReason;
 
+    @Column(length = 255)
+    private String cancellationReason;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reviewed_by")
     private User reviewedBy;

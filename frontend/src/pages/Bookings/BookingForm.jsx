@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 import { createBooking, getAllBookings } from "../../api/bookingApi";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -16,6 +17,7 @@ const initialForm = {
 
 function BookingForm() {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
@@ -143,6 +145,7 @@ function BookingForm() {
       const response = await createBooking(payload);
       toast.success(`Booking #${response.id} submitted for review`);
       setFormData(initialForm);
+      navigate("/bookings/mine");
     } catch (error) {
       const message =
         error?.response?.data?.message ||
@@ -158,10 +161,10 @@ function BookingForm() {
     <div className="grid gap-6 lg:grid-cols-[1.1fr_0.8fr]">
       <section className="rounded-[32px] bg-white p-8 shadow-panel">
         <div className="mb-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-orange-600">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-500">
             User Booking Form
           </p>
-          <h1 className="mt-3 font-display text-3xl font-semibold text-ink">Request a new booking</h1>
+          <h1 className="mt-3 font-display text-3xl font-semibold text-violet-950">Request a new booking</h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
             Create a booking request for a room or lab. The request will enter the pending queue
             until an admin reviews it.
@@ -175,7 +178,7 @@ function BookingForm() {
               name="resourceId"
               value={formData.resourceId}
               onChange={handleChange}
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-orange-400 focus:bg-white"
+              className="rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3 outline-none transition focus:border-violet-400 focus:bg-white"
             >
               {RESOURCE_OPTIONS.map((resource) => (
                 <option key={resource.id} value={resource.id}>
@@ -193,7 +196,7 @@ function BookingForm() {
                 name="bookingDate"
                 value={formData.bookingDate}
                 onChange={handleChange}
-                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-orange-400 focus:bg-white"
+                className="rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3 outline-none transition focus:border-violet-400 focus:bg-white"
                 required
               />
             </label>
@@ -204,7 +207,7 @@ function BookingForm() {
                 name="startTime"
                 value={formData.startTime}
                 onChange={handleChange}
-                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-orange-400 focus:bg-white"
+                className="rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3 outline-none transition focus:border-violet-400 focus:bg-white"
                 required
               >
                 <option value="">Select start time</option>
@@ -222,7 +225,7 @@ function BookingForm() {
                 name="endTime"
                 value={formData.endTime}
                 onChange={handleChange}
-                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-orange-400 focus:bg-white"
+                className="rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3 outline-none transition focus:border-violet-400 focus:bg-white"
                 required
               >
                 <option value="">Select end time</option>
@@ -243,7 +246,7 @@ function BookingForm() {
               onChange={handleChange}
               rows="4"
               placeholder="State why this resource is needed"
-              className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-orange-400 focus:bg-white"
+              className="rounded-3xl border border-violet-200 bg-violet-50 px-4 py-3 outline-none transition focus:border-violet-400 focus:bg-white"
               required
             />
           </label>
@@ -256,7 +259,7 @@ function BookingForm() {
               min="1"
               value={formData.expectedAttendees}
               onChange={handleChange}
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-orange-400 focus:bg-white"
+              className="rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3 outline-none transition focus:border-violet-400 focus:bg-white"
               required
             />
           </label>
@@ -264,7 +267,7 @@ function BookingForm() {
           <button
             type="submit"
             disabled={submitting}
-            className="inline-flex items-center justify-center rounded-full bg-orange-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-orange-300"
+            className="inline-flex items-center justify-center rounded-full bg-violet-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-violet-800 disabled:cursor-not-allowed disabled:bg-violet-300"
           >
             {submitting ? "Submitting..." : "Submit Booking Request"}
           </button>
@@ -272,8 +275,8 @@ function BookingForm() {
       </section>
 
       <aside className="space-y-6">
-        <section className="rounded-[32px] bg-slate-900 p-7 text-white shadow-panel">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-orange-300">
+        <section className="rounded-[32px] bg-violet-950 p-7 text-white shadow-panel">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-200">
             Resource Snapshot
           </p>
           <h2 className="mt-3 font-display text-2xl font-semibold">{selectedResource?.name}</h2>
@@ -287,15 +290,15 @@ function BookingForm() {
         </section>
 
         <section className="rounded-[32px] bg-white p-7 shadow-panel">
-          <h2 className="font-display text-xl font-semibold text-ink">Availability check</h2>
+          <h2 className="font-display text-xl font-semibold text-violet-950">Availability check</h2>
           <p
             className={`mt-4 rounded-3xl px-4 py-4 text-sm leading-6 ${
               availabilityType === "success"
-                ? "bg-emerald-50 text-emerald-700"
+                ? "bg-violet-50 text-violet-700"
                 : availabilityType === "error"
-                  ? "bg-rose-50 text-rose-700"
+                  ? "bg-purple-50 text-purple-700"
                   : availabilityType === "warning"
-                    ? "bg-amber-50 text-amber-700"
+                    ? "bg-violet-100 text-violet-800"
                     : "bg-slate-50 text-slate-600"
             }`}
           >
@@ -304,7 +307,7 @@ function BookingForm() {
         </section>
 
         <section className="rounded-[32px] bg-white p-7 shadow-panel">
-          <h2 className="font-display text-xl font-semibold text-ink">Booking tips</h2>
+          <h2 className="font-display text-xl font-semibold text-violet-950">Booking tips</h2>
           <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
             <li>Use future dates or today only.</li>
             <li>Make sure end time is later than start time.</li>

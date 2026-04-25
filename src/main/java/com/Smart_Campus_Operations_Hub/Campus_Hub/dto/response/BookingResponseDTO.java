@@ -34,6 +34,7 @@ public class BookingResponseDTO {
     private Integer expectedAttendees;
     private BookingStatus status;
     private String adminReason;
+    private String cancellationReason;
     private Long reviewedById;
     private String reviewedByName;
     private LocalDateTime createdAt;
