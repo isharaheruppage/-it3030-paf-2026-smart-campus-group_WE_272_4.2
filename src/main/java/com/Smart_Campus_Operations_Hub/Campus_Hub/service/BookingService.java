@@ -20,6 +20,7 @@ import com.Smart_Campus_Operations_Hub.Campus_Hub.exception.ConflictException;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.exception.ResourceNotFoundException;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.model.Booking;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.model.Booking.BookingStatus;
+import com.Smart_Campus_Operations_Hub.Campus_Hub.model.Role;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.model.Resource;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.model.User;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.repository.BookingRepository;
@@ -64,6 +65,7 @@ public class BookingService {
                 .expectedAttendees(request.getExpectedAttendees())
                 .status(BookingStatus.PENDING)
                 .build();
+        booking.ensureTimestampsForCreate();
 
         return toResponse(bookingRepository.save(booking));
     }
@@ -71,22 +73,28 @@ public class BookingService {
     @Transactional(readOnly = true)
     public List<BookingResponseDTO> getAllBookings(
             BookingStatus status,
-            Long resourceId,
-            Long requesterId,
+            String resourceId,
+            String requesterId,
             LocalDate bookingDate) {
-        return bookingRepository.searchBookings(status, resourceId, requesterId, bookingDate)
+        return bookingRepository.findAll()
                 .stream()
+                .filter(booking -> status == null || booking.getStatus() == status)
+                .filter(booking -> resourceId == null || booking.getResource().getId().equals(resourceId))
+                .filter(booking -> requesterId == null || booking.getRequester().getId().equals(requesterId))
+                .filter(booking -> bookingDate == null || bookingDate.equals(booking.getBookingDate()))
+                .sorted(Comparator.comparing(Booking::getBookingDate).reversed()
+                        .thenComparing(Booking::getStartTime).reversed())
                 .map(this::toResponse)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public BookingResponseDTO getBookingById(Long bookingId) {
+    public BookingResponseDTO getBookingById(String bookingId) {
         return toResponse(getBookingOrThrow(bookingId));
     }
 
     @Transactional(readOnly = true)
-    public List<BookingResponseDTO> getBookingsByRequester(Long requesterId) {
+    public List<BookingResponseDTO> getBookingsByRequester(String requesterId) {
         getUserOrThrow(requesterId);
         return bookingRepository.findByRequesterIdOrderByBookingDateDescStartTimeDesc(requesterId)
                 .stream()
@@ -95,7 +103,7 @@ public class BookingService {
     }
 
     @Transactional(readOnly = true)
-    public BookingAnalyticsDTO getAdminBookingAnalytics(Long adminId) {
+    public BookingAnalyticsDTO getAdminBookingAnalytics(String adminId) {
         User admin = getUserOrThrow(adminId);
         validateAdminRole(admin);
 
@@ -118,7 +126,7 @@ public class BookingService {
         double approvalRate = totalBookings == 0
                 ? 0.0
                 : (approvedBookings * 100.0) / totalBookings;
-        Map<Long, Long> approvedBookingsByResource = approvedBookingsByResource(bookings);
+        Map<String, Long> approvedBookingsByResource = approvedBookingsByResource(bookings);
 
         List<ResourceBookingStatDTO> topResources = bookings.stream()
                 .collect(Collectors.groupingBy(booking -> booking.getResource().getId()))
@@ -146,7 +154,7 @@ public class BookingService {
                 .build();
     }
 
-    public BookingResponseDTO reviewBooking(Long bookingId, BookingReviewRequestDTO request) {
+    public BookingResponseDTO reviewBooking(String bookingId, BookingReviewRequestDTO request) {
         Booking booking = getBookingOrThrow(bookingId);
         User admin = getUserOrThrow(request.getAdminId());
 
@@ -177,11 +185,12 @@ public class BookingService {
         booking.setStatus(request.getStatus());
         booking.setAdminReason(normalizeReason(request.getReason()));
         booking.setReviewedBy(admin);
+        booking.touchUpdatedAt();
 
         return toResponse(bookingRepository.save(booking));
     }
 
-    public BookingResponseDTO cancelBooking(Long bookingId, Long requesterId) {
+    public BookingResponseDTO cancelBooking(String bookingId, String requesterId) {
         Booking booking = getBookingOrThrow(bookingId);
 
         if (!booking.getRequester().getId().equals(requesterId)) {
@@ -197,27 +206,26 @@ public class BookingService {
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
+        booking.touchUpdatedAt();
         return toResponse(bookingRepository.save(booking));
     }
 
-    public void deleteBooking(Long bookingId) {
+    public void deleteBooking(String bookingId) {
         Booking booking = getBookingOrThrow(bookingId);
         bookingRepository.delete(booking);
     }
 
     private void ensureNoConflict(
-            Long resourceId,
+            String resourceId,
             LocalDate bookingDate,
             java.time.LocalTime startTime,
             java.time.LocalTime endTime,
-            Long excludeBookingId) {
-        boolean hasConflict = bookingRepository.existsConflict(
-                resourceId,
-                bookingDate,
-                startTime,
-                endTime,
-                CONFLICT_STATUSES,
-                excludeBookingId);
+            String excludeBookingId) {
+        boolean hasConflict = bookingRepository
+                .findByResourceIdAndBookingDateAndStatusIn(resourceId, bookingDate, List.copyOf(CONFLICT_STATUSES))
+                .stream()
+                .filter(booking -> excludeBookingId == null || !booking.getId().equals(excludeBookingId))
+                .anyMatch(booking -> booking.getStartTime().isBefore(endTime) && booking.getEndTime().isAfter(startTime));
 
         if (hasConflict) {
             throw new ConflictException("The selected resource is already booked for the requested time");
@@ -231,13 +239,13 @@ public class BookingService {
     }
 
     private void validateRequesterRole(User requester) {
-        if (requester.getRole() != User.Role.USER) {
+        if (requester.getRole() != Role.USER) {
             throw new BadRequestException("Only users can create bookings");
         }
     }
 
     private void validateAdminRole(User admin) {
-        if (admin.getRole() != User.Role.ADMIN) {
+        if (admin.getRole() != Role.ADMIN) {
             throw new BadRequestException("Only admins can review bookings");
         }
     }
@@ -261,17 +269,17 @@ public class BookingService {
         return trimmedReason.isEmpty() ? null : trimmedReason;
     }
 
-    private Booking getBookingOrThrow(Long bookingId) {
+    private Booking getBookingOrThrow(String bookingId) {
         return bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + bookingId));
     }
 
-    private Resource getResourceOrThrow(Long resourceId) {
+    private Resource getResourceOrThrow(String resourceId) {
         return resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Resource not found with id: " + resourceId));
     }
 
-    private User getUserOrThrow(Long userId) {
+    private User getUserOrThrow(String userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
     }
@@ -282,7 +290,7 @@ public class BookingService {
                 .count();
     }
 
-    private Map<Long, Long> approvedBookingsByResource(List<Booking> bookings) {
+    private Map<String, Long> approvedBookingsByResource(List<Booking> bookings) {
         return bookings.stream()
                 .filter(booking -> booking.getStatus() == BookingStatus.APPROVED)
                 .collect(Collectors.groupingBy(
@@ -290,7 +298,7 @@ public class BookingService {
                         Collectors.counting()));
     }
 
-    private ResourceBookingStatDTO mapToResourceStat(Map.Entry<Long, List<Booking>> entry, Long approvedBookings) {
+    private ResourceBookingStatDTO mapToResourceStat(Map.Entry<String, List<Booking>> entry, Long approvedBookings) {
         Booking sampleBooking = entry.getValue().get(0);
 
         return ResourceBookingStatDTO.builder()

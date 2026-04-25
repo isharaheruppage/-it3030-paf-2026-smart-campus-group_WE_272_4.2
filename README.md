@@ -69,8 +69,8 @@ Sample success response (`201 Created`):
 ```
 
 ### Technical notes
-- H2 database configured (`jdbc:h2:mem:campus_hub`)
-- H2 console enabled at `/h2-console`
+- MongoDB configured (`spring.data.mongodb.uri=mongodb://localhost:27017/campushub`)
+- Spring Data MongoDB repositories in use (`MongoRepository`)
 - Standardized error responses for validation failures and not-found cases
 - CORS enabled for React client on `http://localhost:5173`
 

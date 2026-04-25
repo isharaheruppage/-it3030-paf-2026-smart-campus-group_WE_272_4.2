@@ -48,20 +48,20 @@ public class ResourceController {
     }
 
     @GetMapping("/{id}")
-    public ResourceResponse getById(@PathVariable Long id) {
+    public ResourceResponse getById(@PathVariable String id) {
         return resourceService.getById(id);
     }
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResourceResponse patch(@PathVariable Long id, @Valid @RequestBody UpdateResourceRequest request) {
+    public ResourceResponse patch(@PathVariable String id, @Valid @RequestBody UpdateResourceRequest request) {
         return resourceService.patch(id, request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN')")
-    public void deactivate(@PathVariable Long id) {
+    public void deactivate(@PathVariable String id) {
         resourceService.deactivate(id);
     }
 }

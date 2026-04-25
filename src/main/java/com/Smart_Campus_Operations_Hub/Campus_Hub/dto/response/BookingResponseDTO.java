@@ -19,12 +19,12 @@ import lombok.Setter;
 @AllArgsConstructor
 public class BookingResponseDTO {
 
-    private Long id;
-    private Long resourceId;
+    private String id;
+    private String resourceId;
     private String resourceName;
     private String resourceType;
     private String resourceLocation;
-    private Long requesterId;
+    private String requesterId;
     private String requesterName;
     private String requesterEmail;
     private LocalDate bookingDate;
@@ -34,7 +34,7 @@ public class BookingResponseDTO {
     private Integer expectedAttendees;
     private BookingStatus status;
     private String adminReason;
-    private Long reviewedById;
+    private String reviewedById;
     private String reviewedByName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

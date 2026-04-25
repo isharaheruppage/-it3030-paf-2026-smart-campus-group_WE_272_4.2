@@ -22,10 +22,10 @@ import lombok.Setter;
 public class BookingRequestDTO {
 
     @NotNull(message = "Resource ID is required")
-    private Long resourceId;
+    private String resourceId;
 
     @NotNull(message = "Requester ID is required")
-    private Long requesterId;
+    private String requesterId;
 
     @NotNull(message = "Booking date is required")
     @FutureOrPresent(message = "Booking date must be today or a future date")

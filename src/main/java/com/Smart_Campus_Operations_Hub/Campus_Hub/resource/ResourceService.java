@@ -5,7 +5,6 @@ import com.Smart_Campus_Operations_Hub.Campus_Hub.resource.dto.ResourceResponse;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.resource.dto.UpdateResourceRequest;
 import java.util.List;
 import java.time.LocalTime;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -30,6 +29,7 @@ public class ResourceService {
         resource.setAvailableFrom(request.availableFrom());
         resource.setAvailableTo(request.availableTo());
         resource.setStatus(request.status());
+        resource.onCreate();
         return toResponse(resourceRepository.save(resource));
     }
 
@@ -42,25 +42,25 @@ public class ResourceService {
             LocalTime availableFrom,
             LocalTime availableTo
     ) {
-        Specification<Resource> specification = Specification.allOf(
-                ResourceSpecifications.hasType(type),
-                ResourceSpecifications.minCapacity(minCapacity),
-                ResourceSpecifications.hasLocation(location),
-                ResourceSpecifications.hasStatus(status),
-                ResourceSpecifications.availableFromAtOrBefore(availableFrom),
-                ResourceSpecifications.availableToAtOrAfter(availableTo)
-        );
-
-        return resourceRepository.findAll(specification).stream().map(this::toResponse).toList();
+        return resourceRepository.findAll().stream()
+                .filter(resource -> type == null || resource.getType() == type)
+                .filter(resource -> minCapacity == null || resource.getCapacity() >= minCapacity)
+                .filter(resource -> location == null || location.isBlank()
+                        || resource.getLocation().toLowerCase().contains(location.trim().toLowerCase()))
+                .filter(resource -> status == null || resource.getStatus() == status)
+                .filter(resource -> availableFrom == null || !resource.getAvailableFrom().isAfter(availableFrom))
+                .filter(resource -> availableTo == null || !resource.getAvailableTo().isBefore(availableTo))
+                .map(this::toResponse)
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public ResourceResponse getById(Long id) {
+    public ResourceResponse getById(String id) {
         return toResponse(findByIdOrThrow(id));
     }
 
     @Transactional
-    public ResourceResponse patch(Long id, UpdateResourceRequest request) {
+    public ResourceResponse patch(String id, UpdateResourceRequest request) {
         Resource resource = findByIdOrThrow(id);
 
         if (request.name() != null) {
@@ -87,18 +87,20 @@ public class ResourceService {
         if (request.status() != null) {
             resource.setStatus(request.status());
         }
+        resource.onUpdate();
 
         return toResponse(resourceRepository.save(resource));
     }
 
     @Transactional
-    public void deactivate(Long id) {
+    public void deactivate(String id) {
         Resource resource = findByIdOrThrow(id);
         resource.setStatus(ResourceStatus.INACTIVE);
+        resource.onUpdate();
         resourceRepository.save(resource);
     }
 
-    private Resource findByIdOrThrow(Long id) {
+    private Resource findByIdOrThrow(String id) {
         return resourceRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id));
     }
 

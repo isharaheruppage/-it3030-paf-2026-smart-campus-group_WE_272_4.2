@@ -17,18 +17,47 @@ import com.Smart_Campus_Operations_Hub.Campus_Hub.dto.response.BookingAnalyticsD
 import com.Smart_Campus_Operations_Hub.Campus_Hub.dto.response.BookingResponseDTO;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.exception.ConflictException;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.model.Booking.BookingStatus;
+import com.Smart_Campus_Operations_Hub.Campus_Hub.model.Resource;
+import com.Smart_Campus_Operations_Hub.Campus_Hub.model.Role;
+import com.Smart_Campus_Operations_Hub.Campus_Hub.model.User;
+import com.Smart_Campus_Operations_Hub.Campus_Hub.repository.ResourceRepository;
+import com.Smart_Campus_Operations_Hub.Campus_Hub.repository.UserRepository;
 
 @SpringBootTest
 class BookingServiceTest {
 
     @Autowired
     private BookingService bookingService;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private ResourceRepository resourceRepository;
+
+    private User getAdmin() {
+        return userRepository.findAll().stream()
+                .filter(user -> user.getRole() == Role.ADMIN)
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private User getRegularUser() {
+        return userRepository.findAll().stream()
+                .filter(user -> user.getRole() == Role.USER)
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private Resource getAnyResource() {
+        return resourceRepository.findAll().stream().findFirst().orElseThrow();
+    }
 
     @Test
     void shouldCreatePendingBooking() {
+        User requester = getRegularUser();
+        Resource resource = getAnyResource();
         BookingRequestDTO request = BookingRequestDTO.builder()
-                .resourceId(1L)
-                .requesterId(2L)
+                .resourceId(resource.getId())
+                .requesterId(requester.getId())
                 .bookingDate(LocalDate.now().plusDays(1))
                 .startTime(LocalTime.of(9, 0))
                 .endTime(LocalTime.of(11, 0))
@@ -39,15 +68,18 @@ class BookingServiceTest {
         BookingResponseDTO response = bookingService.createBooking(request);
 
         assertEquals(BookingStatus.PENDING, response.getStatus());
-        assertEquals(1L, response.getResourceId());
-        assertEquals(2L, response.getRequesterId());
+        assertEquals(resource.getId(), response.getResourceId());
+        assertEquals(requester.getId(), response.getRequesterId());
     }
 
     @Test
     void shouldRejectApprovalWhenApprovedBookingConflicts() {
+        User admin = getAdmin();
+        User requester = getRegularUser();
+        Resource resource = getAnyResource();
         BookingRequestDTO approvedRequest = BookingRequestDTO.builder()
-                .resourceId(1L)
-                .requesterId(2L)
+                .resourceId(resource.getId())
+                .requesterId(requester.getId())
                 .bookingDate(LocalDate.now().plusDays(2))
                 .startTime(LocalTime.of(10, 0))
                 .endTime(LocalTime.of(12, 0))
@@ -59,14 +91,14 @@ class BookingServiceTest {
         bookingService.reviewBooking(
                 approvedBooking.getId(),
                 BookingReviewRequestDTO.builder()
-                        .adminId(1L)
+                        .adminId(admin.getId())
                         .status(BookingStatus.APPROVED)
                         .reason("Looks good")
                         .build());
 
         BookingRequestDTO conflictingRequest = BookingRequestDTO.builder()
-                .resourceId(1L)
-                .requesterId(2L)
+                .resourceId(resource.getId())
+                .requesterId(requester.getId())
                 .bookingDate(LocalDate.now().plusDays(2))
                 .startTime(LocalTime.of(11, 0))
                 .endTime(LocalTime.of(13, 0))
@@ -79,9 +111,12 @@ class BookingServiceTest {
 
     @Test
     void shouldReturnAdminBookingAnalytics() {
+        User admin = getAdmin();
+        User requester = getRegularUser();
+        Resource resource = getAnyResource();
         BookingResponseDTO createdBooking = bookingService.createBooking(BookingRequestDTO.builder()
-                .resourceId(2L)
-                .requesterId(2L)
+                .resourceId(resource.getId())
+                .requesterId(requester.getId())
                 .bookingDate(LocalDate.now().plusDays(3))
                 .startTime(LocalTime.of(9, 0))
                 .endTime(LocalTime.of(10, 0))
@@ -92,17 +127,17 @@ class BookingServiceTest {
         bookingService.reviewBooking(
                 createdBooking.getId(),
                 BookingReviewRequestDTO.builder()
-                        .adminId(1L)
+                        .adminId(admin.getId())
                         .status(BookingStatus.APPROVED)
                         .reason("Approved for analytics")
                         .build());
 
-        BookingAnalyticsDTO analytics = bookingService.getAdminBookingAnalytics(1L);
+        BookingAnalyticsDTO analytics = bookingService.getAdminBookingAnalytics(admin.getId());
 
         assertTrue(analytics.getTotalBookings() >= 1);
         assertTrue(analytics.getApprovedBookings() >= 1);
         assertTrue(analytics.getUpcomingApprovedBookings() >= 1);
         assertTrue(analytics.getTopResources().stream()
-                .anyMatch(resource -> resource.getResourceId().equals(2L)));
+                .anyMatch(resourceStat -> resourceStat.getResourceId().equals(resource.getId())));
     }
 }

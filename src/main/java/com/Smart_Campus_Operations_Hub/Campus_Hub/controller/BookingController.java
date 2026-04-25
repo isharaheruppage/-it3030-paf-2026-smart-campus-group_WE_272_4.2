@@ -43,43 +43,43 @@ public class BookingController {
     @GetMapping
     public ResponseEntity<List<BookingResponseDTO>> getAllBookings(
             @RequestParam(required = false) BookingStatus status,
-            @RequestParam(required = false) Long resourceId,
-            @RequestParam(required = false) Long requesterId,
+            @RequestParam(required = false) String resourceId,
+            @RequestParam(required = false) String requesterId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate bookingDate) {
         return ResponseEntity.ok(bookingService.getAllBookings(status, resourceId, requesterId, bookingDate));
     }
 
     @GetMapping("/admin/analytics")
-    public ResponseEntity<BookingAnalyticsDTO> getAdminBookingAnalytics(@RequestParam Long adminId) {
+    public ResponseEntity<BookingAnalyticsDTO> getAdminBookingAnalytics(@RequestParam String adminId) {
         return ResponseEntity.ok(bookingService.getAdminBookingAnalytics(adminId));
     }
 
     @GetMapping("/users/{requesterId}")
-    public ResponseEntity<List<BookingResponseDTO>> getBookingsByRequester(@PathVariable Long requesterId) {
+    public ResponseEntity<List<BookingResponseDTO>> getBookingsByRequester(@PathVariable String requesterId) {
         return ResponseEntity.ok(bookingService.getBookingsByRequester(requesterId));
     }
 
     @GetMapping("/{bookingId}")
-    public ResponseEntity<BookingResponseDTO> getBookingById(@PathVariable Long bookingId) {
+    public ResponseEntity<BookingResponseDTO> getBookingById(@PathVariable String bookingId) {
         return ResponseEntity.ok(bookingService.getBookingById(bookingId));
     }
 
     @PatchMapping("/{bookingId}/review")
     public ResponseEntity<BookingResponseDTO> reviewBooking(
-            @PathVariable Long bookingId,
+            @PathVariable String bookingId,
             @Valid @RequestBody BookingReviewRequestDTO request) {
         return ResponseEntity.ok(bookingService.reviewBooking(bookingId, request));
     }
 
     @PatchMapping("/{bookingId}/cancel")
     public ResponseEntity<BookingResponseDTO> cancelBooking(
-            @PathVariable Long bookingId,
-            @RequestParam Long requesterId) {
+            @PathVariable String bookingId,
+            @RequestParam String requesterId) {
         return ResponseEntity.ok(bookingService.cancelBooking(bookingId, requesterId));
     }
 
     @DeleteMapping("/{bookingId}")
-    public ResponseEntity<Void> deleteBooking(@PathVariable Long bookingId) {
+    public ResponseEntity<Void> deleteBooking(@PathVariable String bookingId) {
         bookingService.deleteBooking(bookingId);
         return ResponseEntity.noContent().build();
     }

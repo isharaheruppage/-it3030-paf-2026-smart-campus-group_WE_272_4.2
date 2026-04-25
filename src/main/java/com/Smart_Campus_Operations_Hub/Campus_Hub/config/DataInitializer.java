@@ -4,6 +4,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.Smart_Campus_Operations_Hub.Campus_Hub.model.Role;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.model.Resource;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.model.User;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.repository.ResourceRepository;
@@ -19,13 +20,13 @@ public class DataInitializer {
                 userRepository.save(User.builder()
                         .fullName("Admin User")
                         .email("admin@smartcampus.local")
-                        .role(User.Role.ADMIN)
+                        .role(Role.ADMIN)
                         .build());
 
                 userRepository.save(User.builder()
                         .fullName("Student User")
                         .email("student@smartcampus.local")
-                        .role(User.Role.USER)
+                        .role(Role.USER)
                         .build());
             }
 

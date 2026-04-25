@@ -17,7 +17,7 @@ import lombok.Setter;
 public class BookingReviewRequestDTO {
 
     @NotNull(message = "Admin ID is required")
-    private Long adminId;
+    private String adminId;
 
     @NotNull(message = "Status is required")
     private BookingStatus status;

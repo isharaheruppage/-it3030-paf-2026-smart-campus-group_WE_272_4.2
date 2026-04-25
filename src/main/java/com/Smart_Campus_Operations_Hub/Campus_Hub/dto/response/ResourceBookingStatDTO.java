@@ -13,7 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ResourceBookingStatDTO {
 
-    private Long resourceId;
+    private String resourceId;
     private String resourceName;
     private long totalBookings;
     private long approvedBookings;

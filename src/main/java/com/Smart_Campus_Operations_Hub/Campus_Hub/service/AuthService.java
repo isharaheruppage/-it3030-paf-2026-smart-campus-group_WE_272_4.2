@@ -75,9 +75,10 @@ public class AuthService {
         if (!userRepository.existsByEmail(email)) {
             User user = User.builder()
                     .email(email)
-                    .name("Test User")
+                    .fullName("Test User")
                     .password(passwordEncoder.encode(password))
                     .roles(Collections.singleton(Role.USER))
+                    .role(Role.USER)
                     .provider(User.AuthProvider.LOCAL)
                     .build();
             userRepository.save(user);
@@ -97,10 +98,11 @@ public class AuthService {
             role = Role.USER;
         }
         User user = User.builder()
-                .name(name)
+                .fullName(name)
                 .email(email)
                 .password(passwordEncoder.encode(password))
                 .roles(Collections.singleton(role))
+                .role(role)
                 .provider(User.AuthProvider.LOCAL)
                 .build();
         userRepository.save(user);
