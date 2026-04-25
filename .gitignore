@@ -1,20 +1,9 @@
-# Java compiled files
-target/
-
-# Frontend dependencies
-node_modules/
-
-# Secret credentials
-.env
-frontend/.env
-
-# Package locks
-package-lock.json
-
-# IDE files
 .idea/
 .vscode/
 *.iml
 
-# OS files
+target/
+frontend/node_modules/
+frontend/dist/
+
 .DS_Store
