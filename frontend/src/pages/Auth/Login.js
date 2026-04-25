@@ -1,8 +1,10 @@
 import React from 'react';
 
 const Login = () => {
+    const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8081';
+
     const handleGoogleLogin = () => {
-        window.location.href = 'http://localhost:8081/oauth2/authorization/google';
+        window.location.href = `${backendUrl}/oauth2/authorization/google`;
     };
 
     return (
