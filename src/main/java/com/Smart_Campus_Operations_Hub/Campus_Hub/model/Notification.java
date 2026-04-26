@@ -30,6 +30,8 @@ public class Notification {
     private LocalDateTime createdAt;
     
     public enum NotificationType {
+        BOOKING_CREATED,
+        BOOKING_CANCELLED,
         BOOKING_APPROVED,
         BOOKING_REJECTED,
         TICKET_STATUS_CHANGED,

@@ -3,14 +3,56 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
     <meta
       name="description"
-      content="Web site created using create-react-app"
+      content="Smart Campus Operations Hub booking management frontend"
     />
-    <title>Campus Hub</title>
+    <title>Smart Campus Booking Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              display: ["Inter", "ui-sans-serif", "system-ui"],
+              body: ["Inter", "ui-sans-serif", "system-ui"]
+            },
+            colors: {
+              ink: "#0f172a",
+              mist: "#e2e8f0",
+              coral: "#f97316",
+              tealish: "#0f766e",
+              cream: "#fff7ed"
+            },
+            boxShadow: {
+              panel: "0 24px 60px rgba(15, 23, 42, 0.12)"
+            }
+          }
+        }
+      };
+    </script>
+    <style>
+      .glass-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+      }
+
+      .bg-app-gradient {
+        background-color: #f1f5f9;
+        background-image: radial-gradient(at 0% 0%, hsla(210, 100%, 75%, 0.15) 0px, transparent 50%), radial-gradient(at 100% 0%, hsla(210, 100%, 75%, 0.1) 0px, transparent 50%);
+      }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
   </head>
-  <body>
+  <body class="bg-app-gradient font-body text-[#171c1f]">
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
   </body>

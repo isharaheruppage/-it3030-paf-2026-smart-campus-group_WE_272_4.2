@@ -9,6 +9,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -16,11 +18,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.test.context.support.WithMockUser;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Transactional
 class ResourceControllerIntegrationTest {
 
     @Autowired
@@ -29,7 +30,21 @@ class ResourceControllerIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+        @Autowired
+        private ResourceRepository resourceRepository;
+
+        @BeforeEach
+        void setUp() {
+                resourceRepository.deleteAll();
+        }
+
+        @AfterEach
+        void tearDown() {
+                resourceRepository.deleteAll();
+        }
+
     @Test
+        @WithMockUser(username = "admin", roles = {"ADMIN"})
     void createResourceAsAdminReturnsCreated() throws Exception {
         Map<String, Object> payload = defaultResourcePayload(
                 "name", "Lab 01",
@@ -38,15 +53,15 @@ class ResourceControllerIntegrationTest {
         );
 
         mockMvc.perform(post("/api/resources")
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic("admin", "admin123"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(payload)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").isNumber())
+                        .andExpect(jsonPath("$.id").isString())
                 .andExpect(jsonPath("$.name").value("Lab 01"));
     }
 
     @Test
+    @WithMockUser(username = "user", roles = {"USER"})
     void createResourceAsUserIsForbidden() throws Exception {
         Map<String, Object> payload = defaultResourcePayload(
                 "name", "Meeting Room 1",
@@ -56,13 +71,13 @@ class ResourceControllerIntegrationTest {
         );
 
         mockMvc.perform(post("/api/resources")
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic("user", "user123"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(payload)))
                 .andExpect(status().isForbidden());
     }
 
     @Test
+        @WithMockUser(username = "admin", roles = {"ADMIN"})
     void listResourcesSupportsFilters() throws Exception {
         Map<String, Object> payload = defaultResourcePayload(
                 "name", "Lecture Hall 3",
@@ -74,13 +89,11 @@ class ResourceControllerIntegrationTest {
         );
 
         mockMvc.perform(post("/api/resources")
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic("admin", "admin123"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(payload)))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(get("/api/resources")
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic("user", "user123"))
                         .param("type", "LECTURE_HALL")
                         .param("minCapacity", "100")
                         .param("location", "main")
@@ -93,6 +106,7 @@ class ResourceControllerIntegrationTest {
     }
 
     @Test
+        @WithMockUser(username = "admin", roles = {"ADMIN"})
     void patchAndDeactivateFlowWorksForAdmin() throws Exception {
         Map<String, Object> payload = defaultResourcePayload(
                 "name", "Projector X",
@@ -103,7 +117,6 @@ class ResourceControllerIntegrationTest {
         );
 
         String response = mockMvc.perform(post("/api/resources")
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic("admin", "admin123"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(payload)))
                 .andExpect(status().isCreated())
@@ -111,7 +124,7 @@ class ResourceControllerIntegrationTest {
                 .getResponse()
                 .getContentAsString();
 
-        Long id = objectMapper.readTree(response).get("id").asLong();
+        String id = objectMapper.readTree(response).get("id").asText();
 
         Map<String, Object> patchPayload = Map.of(
                 "location", "Media Center - Floor 2",
@@ -120,19 +133,22 @@ class ResourceControllerIntegrationTest {
         );
 
         mockMvc.perform(patch("/api/resources/{id}", id)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic("admin", "admin123"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(patchPayload)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.location").value("Media Center - Floor 2"))
                 .andExpect(jsonPath("$.availableFrom").value("09:00:00"));
 
-        mockMvc.perform(delete("/api/resources/{id}", id)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic("admin", "admin123")))
+        mockMvc.perform(delete("/api/resources/{id}", id))
                 .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/resources/{id}", id))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Resource with id " + id + " not found"));
     }
 
     @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void createResourceWithInvalidAvailabilityWindowReturnsBadRequest() throws Exception {
         Map<String, Object> payload = defaultResourcePayload(
                 "name", "Lab 04",
@@ -143,7 +159,6 @@ class ResourceControllerIntegrationTest {
         );
 
         mockMvc.perform(post("/api/resources")
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic("admin", "admin123"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(payload)))
                 .andExpect(status().isBadRequest())
@@ -151,30 +166,31 @@ class ResourceControllerIntegrationTest {
     }
 
     @Test
+        @WithMockUser(username = "admin", roles = {"ADMIN"})
     void getByIdReturnsCreatedResource() throws Exception {
-        Long id = createResourceAndGetId(defaultResourcePayload(
+        String id = createResourceAndGetId(defaultResourcePayload(
                 "name", "Hall 101",
                 "type", "LECTURE_HALL",
                 "capacity", 200,
                 "location", "Block C"
         ));
 
-        mockMvc.perform(get("/api/resources/{id}", id)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic("user", "user123")))
+                mockMvc.perform(get("/api/resources/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id))
                 .andExpect(jsonPath("$.name").value("Hall 101"));
     }
 
     @Test
+        @WithMockUser(username = "user", roles = {"USER"})
     void getByIdReturnsNotFoundForUnknownResource() throws Exception {
-        mockMvc.perform(get("/api/resources/{id}", 99999L)
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic("user", "user123")))
+                mockMvc.perform(get("/api/resources/{id}", "99999"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Resource with id 99999 not found"));
     }
 
     @Test
+        @WithMockUser(username = "admin", roles = {"ADMIN"})
     void createResourceWithMissingRequiredFieldsReturnsBadRequest() throws Exception {
         Map<String, Object> payload = defaultResourcePayload(
                 "name", "   ",
@@ -182,21 +198,19 @@ class ResourceControllerIntegrationTest {
         );
 
         mockMvc.perform(post("/api/resources")
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic("admin", "admin123"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(payload)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").exists());
     }
 
-    private Long createResourceAndGetId(Map<String, Object> payload) throws Exception {
+        private String createResourceAndGetId(Map<String, Object> payload) throws Exception {
         MvcResult result = mockMvc.perform(post("/api/resources")
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic("admin", "admin123"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(payload)))
                 .andExpect(status().isCreated())
                 .andReturn();
-        return objectMapper.readTree(result.getResponse().getContentAsString()).get("id").asLong();
+                return objectMapper.readTree(result.getResponse().getContentAsString()).get("id").asText();
     }
 
     private Map<String, Object> defaultResourcePayload(Object... overrides) {

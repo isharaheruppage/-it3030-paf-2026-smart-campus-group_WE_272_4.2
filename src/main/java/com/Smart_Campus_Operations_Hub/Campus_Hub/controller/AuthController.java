@@ -4,9 +4,11 @@ import com.Smart_Campus_Operations_Hub.Campus_Hub.dto.request.LoginRequest;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.dto.request.OtpRequest;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.dto.request.RegisterRequest;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.dto.response.AuthResponse;
+import com.Smart_Campus_Operations_Hub.Campus_Hub.exception.BadRequestException;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,8 +20,12 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest loginRequest) {
+        if (loginRequest == null || !StringUtils.hasText(loginRequest.getEmail()) || !StringUtils.hasText(loginRequest.getPassword())) {
+            throw new BadRequestException("Email and password are required");
+        }
+
         // Automatically create a dummy user if it's test@test.com for testing without postman DB insertion
-        if (loginRequest.getEmail().equals("test@test.com")) {
+        if ("test@test.com".equals(loginRequest.getEmail())) {
             authService.createDummyUserIfNotExists("test@test.com", "password123");
         }
 

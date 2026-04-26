@@ -3,9 +3,11 @@ package com.Smart_Campus_Operations_Hub.Campus_Hub.controller;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.model.Role;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.model.User;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.repository.UserRepository;
+import com.Smart_Campus_Operations_Hub.Campus_Hub.dto.response.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
@@ -22,22 +24,24 @@ public class UserController {
     // GET all users
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(userRepository.findAll());
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
+        return ResponseEntity.ok(userRepository.findAll().stream()
+                .map(UserController::toUserResponse)
+                .toList());
     }
 
     // GET user by ID
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable String id) {
+    public ResponseEntity<UserResponse> getUserById(@PathVariable @NonNull String id) {
         return userRepository.findById(id)
-                .map(ResponseEntity::ok)
+                .map(user -> ResponseEntity.ok(toUserResponse(user)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // DELETE user
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deleteUser(@PathVariable String id) {
+    public ResponseEntity<?> deleteUser(@PathVariable @NonNull String id) {
         if (!userRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
@@ -48,7 +52,7 @@ public class UserController {
     // PATCH update role
     @PatchMapping("/{id}/role")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateRole(@PathVariable String id, @RequestBody Map<String, String> body) {
+    public ResponseEntity<?> updateRole(@PathVariable @NonNull String id, @RequestBody Map<String, String> body) {
         return userRepository.findById(id).map(user -> {
             try {
                 Role role = Role.valueOf(body.get("role").toUpperCase());
@@ -59,5 +63,15 @@ public class UserController {
                 return ResponseEntity.badRequest().body("Invalid role: " + body.get("role"));
             }
         }).orElse(ResponseEntity.notFound().build());
+    }
+
+    private static UserResponse toUserResponse(User user) {
+        return UserResponse.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .roles(user.getRoles())
+                .provider(user.getProvider() != null ? user.getProvider().name() : null)
+                .build();
     }
 }

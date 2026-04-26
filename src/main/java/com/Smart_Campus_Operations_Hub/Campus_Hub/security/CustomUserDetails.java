@@ -34,11 +34,13 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
 
     @Override
     public String getPassword() {
+        System.out.println("CUD getPassword for " + user.getEmail());
         return user.getPassword();
     }
 
     @Override
     public String getUsername() {
+        System.out.println("CUD getUsername for " + user.getEmail());
         return user.getEmail(); // using email as username
     }
 
@@ -64,6 +66,11 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        System.out.println("CUD getAuthorities for " + user.getEmail());
+        if (user.getRoles() == null || user.getRoles().isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+
         return user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
                 .collect(Collectors.toList());

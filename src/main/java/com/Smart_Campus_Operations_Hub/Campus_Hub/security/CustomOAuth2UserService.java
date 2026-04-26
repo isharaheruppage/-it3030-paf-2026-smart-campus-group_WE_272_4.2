@@ -57,7 +57,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private User registerNewOAuth2User(String registrationId, OAuth2User oAuth2User) {
         User user = new User();
         user.setProvider(User.AuthProvider.valueOf(registrationId.toUpperCase()));
-        user.setProviderId(oAuth2User.getAttribute("id") != null ? oAuth2User.getAttribute("id").toString() : oAuth2User.getAttribute("sub").toString());
+        String providerId = Optional.ofNullable(oAuth2User.getAttribute("id"))
+                .map(Object::toString)
+                .orElseGet(() -> Optional.ofNullable(oAuth2User.getAttribute("sub"))
+                        .map(Object::toString)
+                        .orElseThrow(() -> new RuntimeException("Provider id not found from OAuth2 provider")));
+        user.setProviderId(providerId);
         user.setName(oAuth2User.getAttribute("name"));
         user.setEmail(oAuth2User.getAttribute("email"));
         user.setRoles(Collections.singleton(Role.USER)); // Default role for new users

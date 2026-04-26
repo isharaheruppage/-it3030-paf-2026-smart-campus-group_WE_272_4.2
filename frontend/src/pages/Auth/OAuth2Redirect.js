@@ -1,9 +1,9 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { AuthContext } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 const OAuth2Redirect = () => {
-    const { login } = useContext(AuthContext);
+    const { login } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -13,7 +13,7 @@ const OAuth2Redirect = () => {
 
         if (token) {
             login(token);
-            navigate('/dashboard');
+            navigate('/');
         } else {
             navigate('/login');
         }

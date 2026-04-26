@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.time.LocalTime;
 
 public record ResourceResponse(
-        Long id,
+        String id,
         String name,
         ResourceType type,
         Integer capacity,

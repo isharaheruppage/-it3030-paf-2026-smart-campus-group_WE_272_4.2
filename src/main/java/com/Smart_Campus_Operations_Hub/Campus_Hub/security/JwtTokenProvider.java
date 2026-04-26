@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.util.Date;
 
+import com.Smart_Campus_Operations_Hub.Campus_Hub.model.User;
+
 @Component
 public class JwtTokenProvider {
 
@@ -24,23 +26,30 @@ public class JwtTokenProvider {
 
     public String generateToken(Authentication authentication) {
         CustomUserDetails userPrincipal = (CustomUserDetails) authentication.getPrincipal();
+        System.out.println("JWT generateToken(Authentication): user=" + userPrincipal.getUsername());
         
         String roles = userPrincipal.getAuthorities().stream()
                 .map(item -> item.getAuthority())
                 .collect(java.util.stream.Collectors.joining(","));
 
+        System.out.println("JWT roles=" + roles);
+
         return Jwts.builder()
                 .setSubject((userPrincipal.getUsername()))
+            .claim("userId", userPrincipal.getId())
+            .claim("name", userPrincipal.getUser().getName())
                 .claim("roles", roles)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
-    
-    public String generateTokenFromEmail(String email) {
+
+        public String generateToken(User user) {
         return Jwts.builder()
-                .setSubject(email)
+            .setSubject(user.getEmail())
+            .claim("userId", user.getId())
+            .claim("name", user.getName())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)

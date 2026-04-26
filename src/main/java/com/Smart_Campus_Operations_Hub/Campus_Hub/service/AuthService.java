@@ -4,10 +4,11 @@ import com.Smart_Campus_Operations_Hub.Campus_Hub.model.Role;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.model.User;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.repository.UserRepository;
 import com.Smart_Campus_Operations_Hub.Campus_Hub.security.JwtTokenProvider;
+import com.Smart_Campus_Operations_Hub.Campus_Hub.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,13 +22,23 @@ import java.util.Random;
 public class AuthService {
 
     private final UserRepository userRepository;
-    private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
     private final PasswordEncoder passwordEncoder;
 
     public String authenticateUser(String email, String password) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(email, password)
+        System.out.println("AUTH start: " + email);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
+
+        if (user.getPassword() == null || !passwordEncoder.matches(password, user.getPassword())) {
+            throw new BadCredentialsException("Invalid email or password");
+        }
+
+        CustomUserDetails userPrincipal = new CustomUserDetails(user);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userPrincipal,
+                null,
+                userPrincipal.getAuthorities()
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -67,7 +78,7 @@ public class AuthService {
         user.setOtpExpiry(null);
         userRepository.save(user);
 
-        return tokenProvider.generateTokenFromEmail(email);
+        return tokenProvider.generateToken(user);
     }
 
     // Helper method to create a dummy user for testing if the DB is empty

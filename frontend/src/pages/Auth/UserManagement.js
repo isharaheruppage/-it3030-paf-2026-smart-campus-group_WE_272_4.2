@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { AuthContext } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 const API_URL = 'http://localhost:8081/api/users';
 
@@ -12,7 +12,7 @@ const ROLE_COLORS = {
 };
 
 export default function UserManagement() {
-    const { user } = useContext(AuthContext);
+    const { currentUser } = useAuth();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -21,7 +21,7 @@ export default function UserManagement() {
     const [searchTerm, setSearchTerm] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
 
-    const headers = { Authorization: `Bearer ${user?.token}` };
+    const headers = { Authorization: `Bearer ${currentUser?.token}` };
 
     useEffect(() => { fetchUsers(); }, []);
 

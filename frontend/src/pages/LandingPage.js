@@ -1,38 +1,53 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wrench, Bell, School, ArrowRight } from 'lucide-react';
+import { Wrench, Bell, ArrowRight } from 'lucide-react';
+import { useAuth } from '../context/AuthContext.jsx';
+import HomeHeader from '../components/HomeHeader.jsx';
 
 const LandingPage = () => {
     const navigate = useNavigate();
+    const { currentUser } = useAuth();
+
+    const displayName = currentUser?.name || currentUser?.email?.split('@')[0] || '';
 
     const handleSignClick = () => {
         navigate('/login');
     };
 
+    const handleUserClick = () => {
+        navigate('/dashboard');
+    };
+
     return (
         <div style={styles.container}>
-            {/* Navigation */}
-            <nav style={styles.nav}>
-                <div style={styles.logo}>
-                    <School size={28} color="#a78bfa" />
-                    <span style={styles.logoText}>Smart Campus</span>
-                </div>
-                <button onClick={handleSignClick} style={styles.signInBtn}>Sign In</button>
-            </nav>
+            <HomeHeader />
 
             {/* Hero Section */}
             <main style={styles.hero}>
+                {currentUser && (
+                    <button onClick={handleUserClick} style={styles.welcomePill}>
+                        Welcome back, {displayName}. Click to open your dashboard.
+                    </button>
+                )}
                 <h1 style={styles.mainTitle}>
                     Intelligent <span style={styles.accentText}>Campus</span><br />
                     Management <span style={styles.accentText}>Platform</span>
                 </h1>
                 <p style={styles.description}>
-                    Book resources, report incidents, and manage campus operations — all in one unified platform.
+                    {currentUser
+                        ? `Hello ${displayName}, book resources, report incidents, and manage campus operations from your homepage.`
+                        : 'Book resources, report incidents, and manage campus operations — all in one unified platform.'}
                 </p>
                 <div style={styles.ctaGroup}>
-                    <button onClick={handleSignClick} style={styles.getStartedBtn}>
-                        Get Started <ArrowRight size={18} style={{ marginLeft: '8px' }} />
-                    </button>
+                    {currentUser ? (
+                        <button onClick={handleUserClick} style={styles.getStartedBtn}>
+                            Open Dashboard <ArrowRight size={18} style={{ marginLeft: '8px' }} />
+                        </button>
+                    ) : (
+                        <button onClick={handleSignClick} style={styles.getStartedBtn}>
+                            Get Started <ArrowRight size={18} style={{ marginLeft: '8px' }} />
+                        </button>
+                    )}
                     <button style={styles.outlineBtn}>Browse Resources</button>
                 </div>
 
@@ -67,36 +82,6 @@ const styles = {
         display: 'flex',
         flexDirection: 'column',
     },
-    nav: {
-        padding: '20px 50px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        background: 'rgba(255, 255, 255, 0.03)',
-        backdropFilter: 'blur(10px)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-    },
-    logo: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-    },
-    logoText: { fontSize: '20px', fontWeight: 700, letterSpacing: '-0.5px' },
-    signInBtn: {
-        padding: '8px 22px',
-        borderRadius: '10px',
-        border: 'none',
-        background: 'linear-gradient(135deg, #667eea, #764ba2)',
-        color: '#fff',
-        fontSize: '14px',
-        fontWeight: 600,
-        cursor: 'pointer',
-        boxShadow: '0 4px 15px rgba(118, 75, 162, 0.3)',
-        transition: 'all 0.3s ease',
-    },
     hero: {
         flex: 1,
         display: 'flex',
@@ -108,16 +93,17 @@ const styles = {
         maxWidth: '1000px',
         margin: '0 auto',
     },
-    badge: {
-        background: 'rgba(118, 75, 162, 0.15)',
-        color: '#a78bfa',
-        padding: '6px 18px',
-        borderRadius: '20px',
-        fontSize: '12px',
+    welcomePill: {
+        marginBottom: '20px',
+        padding: '10px 18px',
+        borderRadius: '999px',
+        border: '1px solid rgba(167, 139, 250, 0.3)',
+        background: 'rgba(255,255,255,0.06)',
+        color: '#ddd6fe',
+        fontSize: '14px',
         fontWeight: 600,
-        marginBottom: '24px',
-        border: '1px solid rgba(118, 75, 162, 0.3)',
-        letterSpacing: '1px',
+        cursor: 'pointer',
+        backdropFilter: 'blur(8px)',
     },
     mainTitle: {
         fontSize: '68px',

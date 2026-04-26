@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:8080/api/resources";
+const API_BASE_URL = `${process.env.REACT_APP_BACKEND_URL || "http://localhost:8081"}/api/resources`;
 
 function buildHeaders(credentials) {
   const token = btoa(`${credentials.username}:${credentials.password}`);

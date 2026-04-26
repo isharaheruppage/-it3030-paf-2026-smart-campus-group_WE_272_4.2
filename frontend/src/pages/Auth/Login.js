@@ -1,10 +1,46 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext.jsx';
+import { loginUser } from '../../api/authApi';
 
 const Login = () => {
     const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8081';
 
+    const navigate = useNavigate();
+    const { login } = useAuth();
+
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [loadingLocal, setLoadingLocal] = useState(false);
+    const [errorLocal, setErrorLocal] = useState('');
+
     const handleGoogleLogin = () => {
         window.location.href = `${backendUrl}/oauth2/authorization/google`;
+    };
+
+    const handleLocalLogin = async (e) => {
+        e.preventDefault();
+        setErrorLocal('');
+        setLoadingLocal(true);
+        try {
+            const resp = await loginUser(email, password);
+            const token = resp?.token || resp?.accessToken || resp?.access_token;
+            if (!token) throw new Error('Invalid login response');
+            login(token);
+            navigate('/dashboard');
+        } catch (err) {
+            // Normalize backend error objects into a readable string
+            let msg = 'Login failed';
+            if (err?.response?.data) {
+                const d = err.response.data;
+                msg = d?.message || (typeof d === 'string' ? d : JSON.stringify(d));
+            } else {
+                msg = err.message || msg;
+            }
+            setErrorLocal(msg);
+        } finally {
+            setLoadingLocal(false);
+        }
     };
 
     return (
@@ -26,7 +62,30 @@ const Login = () => {
                     Continue with Google
                 </button>
 
+                <div style={styles.orRow}><span style={styles.orLine} /><span style={styles.orText}>or</span><span style={styles.orLine} /></div>
 
+                <form onSubmit={handleLocalLogin} style={styles.localForm}>
+                    {errorLocal && <div style={styles.errorBox}>{errorLocal}</div>}
+                    <input
+                        type="email"
+                        placeholder="Email address"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        style={styles.input}
+                        required
+                    />
+                    <input
+                        type="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                        style={styles.input}
+                        required
+                    />
+                    <button type="submit" style={loadingLocal ? styles.buttonDisabled : styles.localBtn} disabled={loadingLocal}>
+                        {loadingLocal ? 'Signing in...' : 'Sign in with email'}
+                    </button>
+                </form>
 
                 <p style={styles.footer}>Smart Campus Operations Hub &copy; 2026</p>
             </div>
@@ -87,6 +146,29 @@ const styles = {
     },
 
     footer: { color: 'rgba(255,255,255,0.2)', fontSize: '11px', marginTop: '24px' },
+    orRow: { display: 'flex', alignItems: 'center', gap: 12, margin: '18px 0' },
+    orLine: { flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' },
+    orText: { color: 'rgba(255,255,255,0.35)', fontSize: 13 },
+    localForm: { display: 'flex', flexDirection: 'column', gap: 12 },
+    input: {
+        padding: '12px 14px',
+        borderRadius: '10px',
+        border: '1px solid rgba(255,255,255,0.12)',
+        background: 'rgba(255,255,255,0.02)',
+        color: '#fff',
+        outline: 'none',
+        fontSize: 14
+    },
+    localBtn: {
+        padding: '12px',
+        borderRadius: '10px',
+        border: 'none',
+        background: 'linear-gradient(135deg, #667eea, #764ba2)',
+        color: '#fff',
+        fontSize: '14px',
+        fontWeight: 700,
+        cursor: 'pointer'
+    },
 };
 
 export default Login;

@@ -1,5 +1,6 @@
 package com.Smart_Campus_Operations_Hub.Campus_Hub.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,6 +25,7 @@ public class User {
     
     private String email;
     
+    @JsonIgnore
     private String password; // Nullable for OAuth users
     
     private Set<Role> roles;
